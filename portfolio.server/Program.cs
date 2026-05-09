@@ -23,4 +23,27 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.MapGet("/api/blogposts", async(int page = 1, int pageSize = 10, PortfolioDbContext dbContext) =>
+{
+    page = Math.Max(1, page);
+    pageSize = Math.Min(50, pageSize);
+
+    var query = dbContext.BlogPosts
+        .Where(post => post.IsPublished)
+        .OrderByDescending(post => post.CreatedAt);
+
+    var totalRecords = await query.CountAsync();
+    var posts = await query
+        .Skip((page - 1) * pageSize)
+        .Take(pageSize)
+        .ToListAsync();
+
+    var (quotient, remainder) = int.DivRem(totalRecords, pageSize);
+    var totalPages = remainder > 0 ? quotient + 1 : quotient;
+
+    PagedResponse<BlogPost> response = new(posts, page, pageSize, totalRecords, totalPages);
+
+    return response;
+});
+
 app.Run();
