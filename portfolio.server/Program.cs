@@ -46,4 +46,9 @@ app.MapGet("/api/blogposts", async(int page = 1, int pageSize = 10, PortfolioDbC
     return response;
 });
 
+app.MapGet("api/blogposts/{id}", async(Guid id, PortfolioDbContext dbContext) => 
+{
+    return await dbContext.BlogPosts.FirstOrDefaultAsync(post => post.Id == id);
+});
+
 app.Run();
